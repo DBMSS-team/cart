@@ -1,16 +1,16 @@
 const express = require("express");
+const cors = require("cors");
 const mongoose = require("mongoose");
-const dotenv = require("dotenv");
-var uuid = require("node-uuid");
 
-dotenv.config();
-
-const users = require("../db/models/cart");
+require("dotenv").config();
 
 const app = express();
+const port = process.env.PORT || 5000;
+
+app.use(cors());
+app.use(express.json());
 
 const uri = process.env.ATLAS_URI;
-
 mongoose
   .connect(uri, {
     useNewUrlParser: true,
@@ -20,8 +20,15 @@ mongoose
     console.log("DB connection error");
   });
 
-console.log("Connected to DB !!");
+const connection = mongoose.connection;
+connection.once("open", () => {
+  console.log(`MongoDB database connection established successfully`);
+});
 
-app.listen(5000, () => {
-  console.log("Listening at port 5000");
+const cartRouter = require("./routes/cart");
+
+app.use("/cart", cartRouter);
+
+app.listen(port, () => {
+  console.log(`Server is running on port: ${port}`);
 });
