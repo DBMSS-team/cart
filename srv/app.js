@@ -12,17 +12,17 @@ app.use(express.json());
 
 const uri = process.env.ATLAS_URI;
 mongoose
-  .connect(uri, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .catch(function () {
-    console.log("DB connection error");
-  });
+	.connect(uri, {
+		useNewUrlParser: true,
+		useUnifiedTopology: true,
+	})
+	.catch(function () {
+		console.log("DB connection error");
+	});
 
 const connection = mongoose.connection;
 connection.once("open", () => {
-  console.log(`MongoDB database connection established successfully`);
+	console.log(`MongoDB database connection established successfully`);
 });
 
 const cartRouter = require("./routes/cart");
@@ -30,5 +30,5 @@ const cartRouter = require("./routes/cart");
 app.use("/cart", cartRouter);
 
 app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
+	console.log(`Server is running on port: ${port}`);
 });
