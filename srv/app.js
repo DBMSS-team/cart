@@ -1,14 +1,18 @@
+global.__commons = __dirname + "/commons/index";
+const { authorization } = require(__commons);
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
+const cookieParser = require("cookie-parser");
+const { logger } = require(__commons);
+const appLogger = logger.appLogger;
+const errorLogger = logger.errorLogger;
+const cartRouter = require("./routes/cart");
 
 require("dotenv").config();
 
 const app = express();
 const port = process.env.PORT || 5000;
-
-app.use(cors());
-app.use(express.json());
 
 const uri = process.env.ATLAS_URI;
 mongoose
@@ -17,18 +21,48 @@ mongoose
 		useUnifiedTopology: true,
 	})
 	.catch(function () {
-		console.log("DB connection error");
+		errorLogger.error("DB connection error");
 	});
 
 const connection = mongoose.connection;
 connection.once("open", () => {
-	console.log(`MongoDB database connection established successfully`);
+	appLogger.info("MongoDB database connection established successfully");
 });
 
-const cartRouter = require("./routes/cart");
+logger.use(app);
+app.use(cors());
+app.use(express.json());
+app.use(cookieParser());
+app.use(authorization.authorizationMiddleware);
+
+app.use((req, res, next) => {
+	req.db = connection;
+	next();
+});
 
 app.use("/cart", cartRouter);
 
-app.listen(port, () => {
-	console.log(`Server is running on port: ${port}`);
+// Error handler
+app.use((err, req, res, next) => {
+	if (err) {
+		res.status(err.status ? err.status : 500);
+		res.json(err.message ? err.message : "Unexpected Error");
+	}
 });
+
+app.listen(port, () => {
+	appLogger.info(`Server is running on port: ${port}`);
+});
+
+process.on("exit", (code) => {
+	connection.close();
+	console.log(`About to exit with code: ${code}`);
+});
+process.on("SIGINT", function () {
+	console.log("Caught interrupt signal");
+	process.exit();
+});
+
+module.exports = {
+	app,
+};
