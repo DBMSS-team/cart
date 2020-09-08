@@ -1,10 +1,9 @@
 global.__commons = __dirname + "/commons/index";
-const { authorization } = require(__commons);
+const { authorization, a2aClient, logger } = require(__commons);
 const express = require("express");
 const cors = require("cors");
 const mongoose = require("mongoose");
 const cookieParser = require("cookie-parser");
-const { logger } = require(__commons);
 const appLogger = logger.appLogger;
 const errorLogger = logger.errorLogger;
 const cartRouter = require("./routes/cart");
@@ -29,6 +28,7 @@ connection.once("open", () => {
 	appLogger.info("MongoDB database connection established successfully");
 });
 
+a2aClient.use(app);
 logger.use(app);
 app.use(cors());
 app.use(express.json());
